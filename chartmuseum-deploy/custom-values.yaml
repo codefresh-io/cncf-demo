@@ -1,5 +1,6 @@
 env:
   open:
+    ALLOW_OVERWRITE: true
     AUTH_ANONYMOUS_GET: true
     DISABLE_API: false
     STORAGE: amazon

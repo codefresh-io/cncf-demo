@@ -1,4 +1,4 @@
 #!/bin/bash -ex
 
-helm delete --purge cncf-demo
+helm delete --purge chartmuseum
 

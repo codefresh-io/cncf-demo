@@ -6,7 +6,7 @@
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
 
 # Install chartmuseum chart
-helm upgrade --install cncf-demo stable/chartmuseum \
+helm upgrade --install chartmuseum stable/chartmuseum \
     -f custom-values.yaml \
     -f aws-creds.yaml
 
