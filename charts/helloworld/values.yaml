@@ -1,0 +1,7 @@
+image:
+  repository: joshcodefresh/helloworld 
+  tag: latest
+
+bgColor: black
+textColor: white
+

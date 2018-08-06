@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include "helloworld.fullname" . }}
+  labels:
+{{ include "helloworld.labels.standard" . | indent 4 }}
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  template:
+    metadata:
+      name: {{ include "helloworld.fullname" . }}
+      labels:
+        app: {{ template "helloworld.name" . }}
+        release: {{ .Release.Name | quote }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        env:
+        - name: BG_COLOR
+          value: {{ .Values.bgColor }}
+        - name: TEXT_COLOR
+          value: {{ .Values.textColor }}
+        ports:
+        - name: http
+          containerPort: 8080
