@@ -1,0 +1,14 @@
+# Must set the following environment variables in the pipeline:
+#
+# - KUBE_CONTEXT
+# - CHART_REPO_URL
+#
+version: "1.0"
+steps:
+  DeployStaging:
+    image: codefresh/cfstep-helm:2.9.1
+    working_directory: charts/
+    environment:
+    - ACTION=install
+    - CHART_REF=helloworld/
+    - RELEASE_NAME=helloworld

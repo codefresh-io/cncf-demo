@@ -1,0 +1,80 @@
+# Must set the following environment variables in the pipeline:
+#
+# - DEPLOY_STAGING_PIPELINE_ID
+# - CHART_REPO_URL
+#
+version: "1.0"
+steps:
+
+  CheckVersions:
+    image: alpine/git:1.0.4
+    commands:
+    - export DOCKER_VERSION=$(cat apps/helloworld/VERSION)
+    - export CHART_VERSION=$(cat charts/helloworld/Chart.yaml | grep -m 1 ^version:| awk '{print $2}')
+    - export PUSH_DOCKER=$(if [[ "$(git log --format='%H' -n 1 -- apps/helloworld/VERSION)" == "${{CF_REVISION}}" ]]; then echo "true"; else echo "false"; fi)
+    - export PUSH_HELM=$(if [[ "$(git log --format='%H' -n 1 -- charts/helloworld/Chart.yaml)" == "${{CF_REVISION}}" ]]; then echo "true"; else echo "false"; fi)
+    - export TRIGGER_DEPLOY=$(if [[ "$PUSH_DOCKER" == "true" ]] || [[ "$PUSH_HELM" == "true" ]]; then echo "true"; else echo "false"; fi)
+    - cf_export DOCKER_VERSION=$DOCKER_VERSION CHART_VERSION=$CHART_VERSION PUSH_DOCKER=$PUSH_DOCKER PUSH_HELM=$PUSH_HELM TRIGGER_DEPLOY=$TRIGGER_DEPLOY
+
+  TestCode:
+    image: alpine/git:1.0.4
+    commands:
+    - echo "everything fine here, move along!"
+
+  BuildDocker:
+    type: build
+    working_directory: apps/helloworld/
+    image_name: jdolitsky/helloworld
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+
+  PushDocker:
+    type: push
+    candidate: '${{BuildDocker}}'
+    tag: '${{DOCKER_VERSION}}'
+    registry: dockerhub
+    when:
+      condition:
+        all:
+          VersionChanged: '"${{PUSH_DOCKER}}" == "true"'
+  
+  PushDockerLatest:
+    type: push
+    candidate: '${{BuildDocker}}'
+    tag: latest
+    registry: dockerhub
+    when:
+      condition:
+        all:
+          VersionChanged: '"${{PUSH_DOCKER}}" == "true"'
+
+  TestChart:
+    image: codefresh/cfstep-helm:2.9.1
+    commands:
+    - helm lint charts/helloworld/
+
+  PackageChart:
+    image: codefresh/cfstep-helm:2.9.1
+    commands:
+    - helm package charts/helloworld/
+    - cf_export CHART_PACKAGE=$(find . -name *.tgz)
+
+  PushChart:
+    image: codefresh/cfstep-helm:2.9.1
+    commands:
+    - helm repo add suse $CHART_REPO_URL
+    - helm push ${{CHART_PACKAGE}} suse
+    when:
+      condition:
+        all:
+          ChartYamlChanged: '"${{PUSH_HELM}}" == "true"'
+
+  TriggerDeploy:
+    image: codefresh/cli:latest
+    commands:
+    - export ARGS="-v CUSTOM_image_tag=${{DOCKER_VERSION}} -v CHART_VERSION=${{CHART_VERSION}}"
+    - codefresh run $DEPLOY_STAGING_PIPELINE_ID --branch=master --detach $ARGS
+    when:
+      condition:
+        all:
+          AnythingPushed: '"${{TRIGGER_DEPLOY}}" == "true"'
+
