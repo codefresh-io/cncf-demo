@@ -19,7 +19,7 @@ class CustomHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     </center>
                 </body>
             </html>
-        ''' % (BG_COLOR, TEXT_COLOR))
+        ''' % (BG_COLOR, TEXT_COLOR, TEXT_COLOR))
 
 def main():
     server = BaseHTTPServer.HTTPServer(('', PORT), CustomHandler)
