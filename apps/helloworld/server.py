@@ -15,6 +15,7 @@ class CustomHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 <body style="background: %s">
                     <center>
                         <h1 style="color: %s">Hello World!</h1>
+                        <h2 style="color: %s">This is a test</h2>
                     </center>
                 </body>
             </html>
