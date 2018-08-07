@@ -22,9 +22,9 @@ spec:
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         env:
         - name: BG_COLOR
-          value: {{ .Values.bgColor }}
+          value: {{ .Values.bgColor | quote }}
         - name: TEXT_COLOR
-          value: {{ .Values.textColor }}
+          value: {{ .Values.textColor | quote }}
         ports:
         - name: http
           containerPort: 8080
